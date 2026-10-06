@@ -16,12 +16,40 @@ CREATE TABLE IF NOT EXISTS iv_scans (
     voc_v double precision NOT NULL,
     isc_a double precision NOT NULL,
     fill_factor double precision NOT NULL,
+    band text,
     status text NOT NULL DEFAULT 'pending',
     verdict text,
     reason text,
     created_by text NOT NULL,
     created_at timestamptz NOT NULL,
     processed_at timestamptz
+);
+ALTER TABLE iv_scans ADD COLUMN IF NOT EXISTS band text;
+CREATE TABLE IF NOT EXISTS temp_bands (
+    band text PRIMARY KEY,
+    ff_min double precision NOT NULL,
+    ff_max double precision NOT NULL,
+    updated_by text,
+    updated_at timestamptz
+);
+CREATE TABLE IF NOT EXISTS band_history (
+    id serial PRIMARY KEY,
+    band text NOT NULL,
+    old_min double precision,
+    old_max double precision,
+    new_min double precision NOT NULL,
+    new_max double precision NOT NULL,
+    changed_by text NOT NULL,
+    changed_at timestamptz NOT NULL
+);
+CREATE TABLE IF NOT EXISTS claim_ledger (
+    id serial PRIMARY KEY,
+    scan_id integer NOT NULL,
+    band text NOT NULL,
+    ff_min double precision NOT NULL,
+    ff_max double precision NOT NULL,
+    claimed_by text NOT NULL,
+    claimed_at timestamptz NOT NULL
 );
 CREATE OR REPLACE FUNCTION notify_iv_scan() RETURNS trigger AS $$
 BEGIN
